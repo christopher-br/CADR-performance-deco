@@ -1,0 +1,60 @@
+# Method parameters
+ihdp_1:
+# bias in [0,1]
+  keys: [x_resampling, bias, rm_confounding]
+  tuples: [
+    [0,0,0],
+    [0,1,1],
+    [0,1,0]
+  ]
+
+ihdp_2:
+# bias in [1,inf)
+  keys: [x_resampling, bias, rm_confounding]
+  tuples: [
+    [0,1,0],
+    [0,4,1],
+    [0,4,0]
+  ]
+
+synth_1:
+# bias in [0,1]
+  keys: [x_resampling, bias, rm_confounding]
+  tuples: [
+    [0,0,0],
+    [0,1,1],
+    [0,1,0]
+  ]
+
+news_2:
+# bias in [1,inf)
+  keys: [x_resampling, bias, rm_confounding]
+  tuples: [
+    [0,1,0],
+    [0,2,1],
+    [0,2,0]
+  ]
+
+tcga_3:
+# bias_intra in [0,inf)
+# bias_inter in [0,1)
+  keys: [x_resampling, bias_intra, bias_inter, rm_confounding]
+  tuples: [
+    [0,0,0,0],
+    [0,3,0.4,1],
+    [0,3,0.4,0]
+  ]
+
+tcga_2:
+# treatment_bias in [0,inf)
+# dose_bias in [1,inf)
+  keys: [x_resampling, treatment_bias, dose_bias, rm_confounding_t, rm_confounding_d]
+  tuples: [
+    [0,0,1,0,0],
+    [0,2,1,1,0],
+    [0,2,1,0,0],
+    [0,2,2,0,1],
+    [0,2,2,0,0],
+  ]
+
+
