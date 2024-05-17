@@ -8,7 +8,7 @@ ihdp_1:
     [0,1,0]
   ]
 
-ihdp_2:
+ihdp_3:
 # bias in [1,inf)
   keys: [x_resampling, bias, rm_confounding]
   tuples: [

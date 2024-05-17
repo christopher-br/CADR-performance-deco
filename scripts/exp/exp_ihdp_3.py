@@ -2,7 +2,7 @@
 #####################################
 
 DIR = "..."
-DATA_NAME = "ihdp_2"
+DATA_NAME = "ihdp_3"
 
 # Chg os and sys path
 import os
@@ -32,7 +32,7 @@ from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
 
 # Proprietary
-from src.data.ihdp_2 import load_data
+from src.data.ihdp_3 import load_data
 from src.methods.other import SLearner
 from src.methods.neural import DRNet, MLP, VCNet, SCIGAN
 from src.methods.utils.regressors import LinearRegression, GeneralizedAdditiveModel

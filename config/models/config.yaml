@@ -45,11 +45,3 @@ vcnet:
   batch_size: [128, 256]
   num_steps: [5000]
   hidden_size: [32]
-
-cbrnet:
-  learning_rate: [0.0001, 0.001]
-  regularization_l2: [0.0, 0.1]
-  batch_size: [64, 128]
-  num_steps: [5000]
-  hidden_size: [32, 48]
-  num_cluster: [5]
