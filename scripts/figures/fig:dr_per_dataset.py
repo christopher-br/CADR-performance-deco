@@ -16,7 +16,7 @@ sys.path.append(DIR)
 # Proprietary
 from src.data.ihdp_1 import load_data as ihdp_1
 from src.data.ihdp_3 import load_data as ihdp_3
-from src.data.news_2 import load_data as news_2
+from src.data.news_3 import load_data as news_3
 from src.data.synth_1 import load_data as synth_1
 from src.data.tcga_2 import load_data as tcga_2
 from src.data.tcga_3 import load_data as tcga_3
@@ -52,10 +52,10 @@ dose_dr_plot(data.x, data.d, data.t, data.ground_truth ,w=3,h=3, file_name="dr_"
 
 ##########################
 
-name = "news_2"
+name = "news_3"
 
 # Load data
-data = news_2(
+data = news_3(
     bias=4.
 )
 

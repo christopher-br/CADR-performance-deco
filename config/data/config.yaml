@@ -26,7 +26,7 @@ synth_1:
     [0,1,0]
   ]
 
-news_2:
+news_3:
 # bias in [1,inf)
   keys: [x_resampling, bias, rm_confounding]
   tuples: [

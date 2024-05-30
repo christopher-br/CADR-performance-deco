@@ -4,7 +4,7 @@ import pandas as pd
 
 os.chdir(".../res")
 
-path = "res:exp_news_2.csv"
+path = "res:exp_news_3.csv"
 
 data = pd.read_csv(path)
 

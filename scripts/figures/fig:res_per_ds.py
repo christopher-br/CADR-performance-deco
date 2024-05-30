@@ -17,7 +17,7 @@ os.chdir("...")
 results = [
     "ihdp_1",
     "ihdp_3",
-    "news_2",
+    "news_3",
     "synth_1",
     ]
 
