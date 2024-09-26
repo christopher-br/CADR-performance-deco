@@ -59,7 +59,7 @@ Please cite our paper and/or code as:
 ```
 @Article{src_of_gain,
   author        = {Bockel-Rickermann, Christopher and Vanderschueren, Toon and Verdonck, Tim and Verbeke, Wouter},
-  title         = {Sources of gain: {D}ecomposing challenges in continuous treatment effect estimation},
+  title         = {Sources of gain: {D}ecomposing challenges in conditional average dose response estimation},
   year          = {2024},
   month         = 04,
 }
