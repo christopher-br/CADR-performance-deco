@@ -1,5 +1,3 @@
-# Source: https://github.com/christopher-br/CBRNet
-
 # LOAD MODULES
 # Standard library
 from typing import Union, Optional
