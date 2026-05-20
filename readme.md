@@ -108,6 +108,18 @@ Performance decomposition (MISE) on the Synth-1 dataset:
 | VCNet         | **0.31** ± 0.03    | **0.31** ± 0.03     | **0.37** ± 0.04     |
  
 ## Results for policy error
+Here's a concise section you can drop into the README above the "Results for policy error" tables:
+markdown## Policy error and dose policy error
+
+We follow the policy-error formulation of Schwab et al. (2019). Intuitively:
+
+- **Policy error** measures the *outcome regret* of following the estimator's recommendation instead of the oracle one. For each test unit, we identify the intervention–dose pair $(t, d)$ that the estimator predicts to be optimal and compare its true outcome to the true outcome under the genuinely optimal pair. The policy error is the average of these per-unit regrets. An estimator that recovers the optimal decision for every unit achieves zero policy error, even if its predicted outcome values are off in absolute terms: what matters is the *ranking* of $(t, d)$ pairs per unit.
+
+- **Dose policy error** isolates the *dose-selection* component by fixing the intervention $t$ to its oracle value and only optimizing over the dose $d$. On single-intervention datasets (IHDP-1, IHDP-3, News-3, Synth-1), policy error and dose policy error coincide.
+
+We refer the reader to Schwab et al. (2019) for the formal definition and discussion.
+
+We include our results below. Consistent with our MISE findings, confounding adds little complexity to standard benchmarks, whereas dose non-uniformity does impact certain methods.
  
 ### Policy error on TCGA-2 dataset
  
@@ -123,7 +135,7 @@ Performance decomposition (MISE) on the Synth-1 dataset:
 | DRNet         | 0.29 ± 0.38            | 0.52 ± 0.41            | 0.42 ± 0.43            | 0.26 ± 0.40              | 0.26 ± 0.40              |
 | VCNet         | **0.00** ± 0.00        | **0.00** ± 0.00        | **0.00** ± 0.00        | **0.00** ± 0.00          | **0.00** ± 0.00          |
  
-### Dose policy error on IHDP-3 dataset
+### Policy error on IHDP-3 dataset
  
 | Method        | Base                   | *d* non-unif.          | *d* conf.              |
 |---------------|------------------------|------------------------|------------------------|
@@ -136,12 +148,55 @@ Performance decomposition (MISE) on the Synth-1 dataset:
 | SCIGAN        | 162.53 ± 148.43        | 172.43 ± 140.13        | 297.81 ± 66.66         |
 | DRNet         | *15.80* ± 10.79        | 76.62 ± 123.90         | **254.17** ± 31.15     |
 | VCNet         | **4.75** ± 4.16        | **11.23** ± 6.67       | *264.68* ± 30.55       |
+
+### Policy error on IHDP-1 dataset
+ 
+| Method        | Base                   | *d* non-unif.          | *d* conf.              |
+|---------------|------------------------|------------------------|------------------------|
+| Lin. reg.     | 120.55 ± 0.00          | 120.55 ± 0.00          | 120.55 ± 0.00          |
+| Reg. tree     | 15.32 ± 5.73           | 12.70 ± 7.86           | 10.91 ± 6.72           |
+| GAM           | **0.00** ± 0.00        | *0.01* ± 0.02          | *0.01* ± 0.02          |
+| Kernel ridge  | *0.01* ± 0.01          | **0.01** ± 0.01        | **0.00** ± 0.00        |
+| xgboost       | 0.35 ± 0.74            | 0.16 ± 0.20            | 0.06 ± 0.04            |
+| MLP           | 107.92 ± 35.69         | 120.54 ± 0.04          | 68.35 ± 54.67          |
+| SCIGAN        | 120.55 ± 0.00          | 120.50 ± 0.15          | 120.55 ± 0.00          |
+| DRNet         | 0.65 ± 0.71            | 1.73 ± 1.20            | 0.63 ± 0.72            |
+| VCNet         | 0.25 ± 0.44            | 0.19 ± 0.41            | 0.04 ± 0.05            |
+
+### Policy error on News-3 dataset
+ 
+| Method        | Base                   | *d* non-unif.          | *d* conf.              |
+|---------------|------------------------|------------------------|------------------------|
+| Lin. reg.     | 1.38 ± 0.96            | 1.38 ± 0.96            | 1.38 ± 0.96            |
+| Reg. tree     | 11.90 ± 5.76           | 8.24 ± 4.18            | 9.63 ± 8.17            |
+| GAM           | 1.27 ± 0.80            | 1.38 ± 0.96            | 1.34 ± 0.91            |
+| Kernel ridge  | *1.18* ± 0.63          | *1.10* ± 0.55          | *1.13* ± 0.57          |
+| xgboost       | 1.33 ± 0.63            | 1.30 ± 0.40            | 1.30 ± 0.43            |
+| MLP           | 1.77 ± 1.92            | 1.38 ± 0.96            | 1.38 ± 0.96            |
+| SCIGAN        | 4.16 ± 1.36            | 2.97 ± 1.42            | 2.80 ± 0.81            |
+| DRNet         | 1.41 ± 0.97            | 1.18 ± 0.81            | 1.29 ± 0.81            |
+| VCNet         | **0.79** ± 0.27        | **0.75** ± 0.18        | **0.62** ± 0.11        |
+ 
+### Policy error on Synth-1 dataset
+ 
+| Method        | Base                   | *d* non-unif.          | *d* conf.              |
+|---------------|------------------------|------------------------|------------------------|
+| Lin. reg.     | 2.81 ± 0.31            | 2.81 ± 0.31            | 2.81 ± 0.31            |
+| Reg. tree     | 0.58 ± 0.36            | 0.60 ± 0.66            | 0.60 ± 0.46            |
+| GAM           | *0.00* ± 0.01          | *0.00* ± 0.01          | 0.01 ± 0.01            |
+| Kernel ridge  | **0.00** ± 0.00        | **0.00** ± 0.00        | **0.00** ± 0.00        |
+| xgboost       | 0.01 ± 0.01            | 0.02 ± 0.02            | 0.02 ± 0.02            |
+| MLP           | 0.00 ± 0.00            | 0.00 ± 0.00            | *0.00* ± 0.00          |
+| SCIGAN        | 0.04 ± 0.05            | 0.06 ± 0.12            | 2.09 ± 1.29            |
+| DRNet         | 0.01 ± 0.01            | 0.04 ± 0.09            | 0.01 ± 0.01            |
+| VCNet         | 0.00 ± 0.00            | 0.01 ± 0.01            | 0.00 ± 0.00            |
+ 
  
 ## Implementation and hyperparameter optimization
  
 All experiments were written in Python 3.9 and run on an Apple M2 Pro SoC with 10 CPU cores, 16 GPU cores, and 16 GB of shared memory. The system needs approximately two days for the iterative execution of all experiments.
  
-For SCIGAN and VCNet, we use the original implementations provided by Bica et al. (2020) ([SCIGAN repository](https://github.com/ioanabica/SCIGAN)) and Nie et al. (2021) ([VCNet repository](https://github.com/lushleaf/varying-coefficient-net-with-functional-tr)). All remaining neural network architectures were implemented in PyTorch using Lightning. Xgboost is implemented using the `xgboost` library. GAMs were implemented using the `PyGAM` library. For Kernel Ridge Regression, following Singh et al. (2024) and the implementation of Raykov et al. (2025), the kernel factorizes as *K* = *K<sub>X</sub>* ⊙ *K<sub>T</sub>* ⊙ *K<sub>D</sub>*, with Radial Basis Function (RBF) kernels on covariates and dose, a delta kernel on the intervention, and bandwidths set by scaling the median pairwise distance of training inputs by *σ<sub>x</sub>* and *σ<sub>d</sub>*. All other methods were implemented using the `Scikit-Learn` library and the `statsmodels` library.
+For SCIGAN and VCNet, we use the original implementations provided by Bica et al. (2020) ([SCIGAN repository](https://github.com/ioanabica/SCIGAN)) and Nie et al. (2021) ([VCNet repository](https://github.com/lushleaf/varying-coefficient-net-with-functional-tr)). All remaining neural network architectures were implemented in PyTorch using Lightning. Xgboost is implemented using the `xgboost` library. GAMs were implemented using the `PyGAM` library. For Kernel Ridge Regression, following Singh et al. (2024) and the implementation of Raykov et al. (2025) ([repository](https://github.com/JordanRaykov/Kernel-based-estimators-for-Functional-Causal-Effects)), the kernel factorizes as *K* = *K<sub>X</sub>* ⊙ *K<sub>T</sub>* ⊙ *K<sub>D</sub>*, with Radial Basis Function (RBF) kernels on covariates and dose, a delta kernel on the intervention, and bandwidths set by scaling the median pairwise distance of training inputs by *σ<sub>x</sub>* and *σ<sub>d</sub>*. All other methods were implemented using the `Scikit-Learn` library and the `statsmodels` library.
  
 For TCGA-based datasets, linear regression models and GAMs were trained using the first 50 principal components of the covariate matrix to reduce computational complexity.
  
@@ -236,4 +291,30 @@ For all methods, we used a validation set for hyperparameter optimization and ch
 | Hidden size   | {32} *(fixed)* |
 | Num steps     | {5000} *(fixed)* |
 | Optimizer     | {Adam} *(fixed)* |
+
+## References
+ 
+Bica, I., Jordon, J., & van der Schaar, M. (2020). Estimating the effects of continuous-valued interventions using generative adversarial networks. *Advances in Neural Information Processing Systems (2020)*. 
+ 
+Chen, T., & Guestrin, C. (2016). *XGBoost: A scalable tree boosting system*.
+ 
+Falcon, W., Borovec, J., Wälchli, A., Eggert, N., Schock, J., Jordan, J., Skafte, N., Bereznyuk, V., Harris, E., Murrell, T., Yu, P., Præsius, S., Addair, T., Zhong, J., Lipin, D., Uchida, S., Bapat, S., Schröter, H., Dayma, B., … Bakhtin, A. (2020). *PyTorch Lightning*. https://www.pytorchlightning.ai
+ 
+Nie, L., Ye, M., & Nicolae, D. VCNet and Functional Targeted Regularization For Learning Causal Effects of Continuous Treatments. In *International Conference on Learning Representations*.
+
+Paszke, A., Gross, S., Chintala, S., Chanan, G., Yang, E., DeVito, Z., Lin, Z., Desmaison, A., Antiga, L., & Lerer, A. (2017). Automatic differentiation in PyTorch. In *NIPS-W* (pp. 1–4).
+ 
+Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cournapeau, D., Brucher, M., Perrot, M., & Duchesnay, E. (2011). Scikit-learn: Machine learning in Python. *Journal of Machine Learning Research*, *12*, 2825–2830.
+ 
+Raykov, Y. P., Luo, H., Strait, J. D., & KhudaBukhsh, W. R. (2025). Kernel-based estimators for functional causal effects. *arXiv preprint arXiv:2503.05024*.
+ 
+Schwab, P., Linhardt, L., Bauer, S., Buhmann, J. M., & Karlen, W. (2019). Learning counterfactual representations for estimating individual dose-response curves. *Proceedings of the AAAI Conference on Artificial Intelligence*, *34*(04), 5612–5619. 
+ 
+Seabold, S., & Perktold, J. (2010). Statsmodels: Econometric and statistical modeling with Python. In *9th Python in Science Conference*.
+ 
+Servén, D., Brummitt, C., Abedi, H., & Hlink. (2018). *PyGAM*. https://pygam.readthedocs.io/en/latest/
+ 
+Singh, R., Xu, L., & Gretton, A. (2024). Kernel methods for causal functions: Dose, heterogeneous and incremental response curves. *Biometrika*, *111*(2), 497–516.
+ 
+Van Rossum, G., & Drake, F. L. (1995). *Python reference manual*. Centrum voor Wiskunde en Informatica Amsterdam.
  
