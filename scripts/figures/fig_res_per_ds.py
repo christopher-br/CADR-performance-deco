@@ -6,13 +6,15 @@ h = 3
 
 # Load modules
 import os
+from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 import scienceplots
 from matplotlib.ticker import MaxNLocator
 plt.style.use('science')
 
-os.chdir("...")
+root = Path(__file__).resolve().parents[2]
+os.chdir(root)
 
 results = [
     "ihdp_1",
@@ -22,11 +24,13 @@ results = [
     ]
 
 for result in results:
-    path = "res/res:exp_" + result + ".csv"
+    path = "results/exp_" + result + ".csv"
     data = pd.read_csv(path)
 
-    # Rm brier score cols
-    data = data[[col for col in data.columns if not col.startswith("Brier score ")]]
+    # Keep only MISE model columns and experimental settings.
+    non_metric_cols = ["bias", "rm_confounding", "seed", "x_resampling"]
+    mise_cols = [col for col in data.columns if col.startswith("MISE ")]
+    data = data[non_metric_cols + mise_cols]
 
     # Rm mise prefix
     data.columns = [col.replace("MISE ", "") for col in data.columns]

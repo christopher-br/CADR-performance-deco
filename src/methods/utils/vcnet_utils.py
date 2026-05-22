@@ -39,8 +39,12 @@ def get_iter(data_matrix, batch_size, shuffle=True):
 
 # Eval
 def curve(model, test_matrix, t_grid, targetreg=None):
+    device = next(model.parameters()).device
+    test_matrix = test_matrix.to(device)
+    t_grid = t_grid.to(device)
+
     n_test = t_grid.shape[1]
-    t_grid_hat = torch.zeros(2, n_test)
+    t_grid_hat = torch.zeros(2, n_test, device=device, dtype=t_grid.dtype)
     t_grid_hat[0, :] = t_grid[0, :]
 
     test_loader = get_iter(test_matrix, batch_size=test_matrix.shape[0], shuffle=False)
@@ -48,6 +52,7 @@ def curve(model, test_matrix, t_grid, targetreg=None):
     if targetreg is None:
         for _ in range(n_test):
             for idx, (inputs, y) in enumerate(test_loader):
+                inputs = inputs.to(device)
                 t = inputs[:, 0]
                 t *= 0
                 t += t_grid[0, _]
@@ -62,6 +67,7 @@ def curve(model, test_matrix, t_grid, targetreg=None):
     else:
         for _ in range(n_test):
             for idx, (inputs, y) in enumerate(test_loader):
+                inputs = inputs.to(device)
                 t = inputs[:, 0]
                 t *= 0
                 t += t_grid[0, _]
@@ -103,8 +109,14 @@ class Truncated_power:
         :param x: torch.tensor, batch_size * 1
         :return: the value of each basis given x; batch_size * self.num_of_basis
         """
-        x = x.squeeze()
-        out = torch.zeros(x.shape[0], self.num_of_basis)
+        # Keep x as a 1D batch vector even when batch size is 1.
+        x = x.reshape(-1)
+        out = torch.zeros(
+            x.shape[0],
+            self.num_of_basis,
+            device=x.device,
+            dtype=x.dtype,
+        )
         for _ in range(self.num_of_basis):
             if _ <= self.degree:
                 if _ == 0:
@@ -160,7 +172,8 @@ class Dynamic_FC(nn.Module):
         x_feature = x[:, 1:]
         x_treat = x[:, 0]
 
-        x_feature_weight = torch.matmul(self.weight.T, x_feature.T).T  # bs, outd, d
+        # Equivalent to (self.weight.T @ x_feature.T).T but avoids deprecated transpose on 3D tensors.
+        x_feature_weight = torch.einsum("bi,iod->bod", x_feature, self.weight)  # bs, outd, d
 
         x_treat_basis = self.spb.forward(x_treat)  # bs, d
         x_treat_basis_ = torch.unsqueeze(x_treat_basis, 1)
@@ -187,12 +200,11 @@ def comp_grid(y, num_grid):
     # U gives the upper index
     # inter gives the distance to the lower int
 
-    U = torch.ceil(y * num_grid)
-    inter = 1 - (U - y * num_grid)
-    L = U - 1
-    L += (L < 0).int()
+    U = torch.ceil(y * num_grid).long()
+    inter = 1 - (U.float() - y * num_grid)
+    L = torch.clamp(U - 1, min=0)
 
-    return L.int().tolist(), U.int().tolist(), inter
+    return L, U, inter
 
 
 class Density_Block(nn.Module):
@@ -222,7 +234,7 @@ class Density_Block(nn.Module):
             out += self.bias
         out = self.softmax(out)
 
-        x1 = list(torch.arange(0, x.shape[0]))
+        x1 = torch.arange(0, x.shape[0], device=x.device, dtype=torch.long)
         L, U, inter = comp_grid(t, self.num_grid)
 
         L_out = out[x1, L]

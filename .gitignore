@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Editor / tooling
+.claude/
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# PDFs
+*.pdf
+
+# Markdown — only readme.md belongs on the repo
+*.md
+!readme.md
+
+# CSV / NPY data — only the originals on the remote belong on the repo
+*.csv
+*.npy
+!data/IHDP-1.csv
+!data/News-2.npy
+
+# Local model artifacts and result outputs (not on the remote)
+models/
+results/
+
+# Local-only scripts not present on the GitHub remote
+scripts/generate_final_outputs.py
+scripts/merge_kernelridge_results.py
+scripts/exp/exp_kernelridge_all.py
+scripts/exp/exp_tcga_2_244.py
+scripts/exp/exp_tcga_2_efficient.py
+scripts/exp/exp_tcga_2_subset_1000.py
+scripts/exp/smoke_synth_1_tcga_2.py

@@ -1,5 +1,6 @@
 # LOAD MODULES
 # Standard library
+from pathlib import Path
 import os
 import sys
 
@@ -9,9 +10,9 @@ import matplotlib.pyplot as plt
 import scienceplots
 plt.style.use('science')
 
-DIR = "..."
+DIR = Path(__file__).resolve().parents[2]
 os.chdir(DIR)
-sys.path.append(DIR)
+sys.path.append(str(DIR))
 
 # Proprietary
 from src.data.ihdp_1 import load_data as ihdp_1

@@ -45,3 +45,8 @@ vcnet:
   batch_size: [128, 256]
   num_steps: [5000]
   hidden_size: [32]
+
+kernelridge:
+  lambd1: [0.001, 0.01, 0.1, 1.0]
+  sigma_x: [0.5, 1.0, 2.0]
+  sigma_d: [0.5, 1.0, 2.0]

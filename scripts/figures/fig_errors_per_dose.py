@@ -4,7 +4,9 @@
 w = 4
 h = 3
 
-DIR = "..."
+from pathlib import Path
+
+DIR = Path(__file__).resolve().parents[2]
 DATA_NAME = "tcga_2"
 
 # Standard library
@@ -14,7 +16,7 @@ from typing import Callable
 import os
 import sys
 os.chdir(DIR)
-sys.path.append(DIR)
+sys.path.append(str(DIR))
 
 # Third party
 import numpy as np

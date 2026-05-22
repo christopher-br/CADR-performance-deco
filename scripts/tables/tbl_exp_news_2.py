@@ -1,10 +1,12 @@
 # Load modules
 import os
+from pathlib import Path
 import pandas as pd
 
-os.chdir(".../res")
+root = Path(__file__).resolve().parents[2]
+os.chdir(root / "results")
 
-path = "res:exp_news_3.csv"
+path = "exp_news_3.csv"
 
 data = pd.read_csv(path)
 

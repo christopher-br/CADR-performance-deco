@@ -126,4 +126,7 @@ def mmd_none(**kwargs):
     """
     A dummy function that returns 0.
     """
-    return torch.tensor(0)
+    hidden = kwargs.get("hidden")
+    if isinstance(hidden, torch.Tensor):
+        return hidden.new_tensor(0.0)
+    return torch.tensor(0.0)

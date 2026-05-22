@@ -1,6 +1,10 @@
 # Copyright (c) 2020, Ioana Bica
 
 import numpy as np
+import os
+
+# Required for TensorFlow v1-style tf.layers API used in SCIGAN.
+os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
 import tensorflow._api.v2.compat.v1 as tf
 tf.disable_v2_behavior()
 
