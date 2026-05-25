@@ -108,8 +108,6 @@ Performance decomposition (MISE) on the Synth-1 dataset:
 | VCNet         | **0.31** ± 0.03    | **0.31** ± 0.03     | **0.37** ± 0.04     |
  
 ## Results for policy error
-Here's a concise section you can drop into the README above the "Results for policy error" tables:
-markdown## Policy error and dose policy error
 
 We follow the policy-error formulation of Schwab et al. (2019). Intuitively:
 
@@ -119,7 +117,7 @@ We follow the policy-error formulation of Schwab et al. (2019). Intuitively:
 
 We refer the reader to Schwab et al. (2019) for the formal definition and discussion.
 
-We include our results below. Consistent with our MISE findings, confounding adds little complexity to standard benchmarks, whereas dose non-uniformity does impact certain methods.
+We include our results below. Consistent with our MISE findings, confounding adds little complexity to standard benchmarks, whereas dose non-uniformity does impact certain methods. Additionally, policy error can be limiting: it assumes a simple objective without constraints and struggles to differentiate methods on simple decision functions (e.g., monotonic), where finding the optimal dose is easy. For Synth-1, IHDP-1, and TCGA-2, the optimal dose is nearly identical across data points (Figure 6), making policy error a poor metric for these datasets.
  
 ### Policy error on TCGA-2 dataset
  
