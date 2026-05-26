@@ -109,11 +109,8 @@ Performance decomposition (MISE) on the Synth-1 dataset:
  
 ## Results for policy error
 
-We follow the policy-error formulation of Schwab et al. (2019). Intuitively:
+We follow the policy error definition of Schwab et al. (2019). Intuitively, policy error measures how well a method identifies the optimal intervention-dose combination. For each test unit, we find the intervention–dose pair $(t, d)$ that the estimator predicts maximizes the response. The true outcome of this pair is then compared to the true outcome under the true optimal pair. The policy error is the average of the per-unit squared differences. An estimator that finds the optimal decision for every unit achieves zero policy error, even if its predicted outcome values are off in absolute terms. In practice, we compute these optima by searching through a set of equally spaced samples.
 
-- **Policy error** measures the *outcome regret* of following the estimator's recommendation instead of the oracle one. For each test unit, we identify the intervention–dose pair $(t, d)$ that the estimator predicts to be optimal and compare its true outcome to the true outcome under the genuinely optimal pair. The policy error is the average of these per-unit regrets. An estimator that recovers the optimal decision for every unit achieves zero policy error, even if its predicted outcome values are off in absolute terms: what matters is the *ranking* of $(t, d)$ pairs per unit.
-
-- **Dose policy error** isolates the *dose-selection* component by fixing the intervention $t$ to its oracle value and only optimizing over the dose $d$. On single-intervention datasets (IHDP-1, IHDP-3, News-3, Synth-1), policy error and dose policy error coincide.
 
 We refer the reader to Schwab et al. (2019) for the formal definition and discussion.
 
