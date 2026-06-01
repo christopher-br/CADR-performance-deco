@@ -109,6 +109,10 @@ def add_dict(
     file_path (str): The path of the file to check.
     row (Dict): A dictionary containing the row to add.
     """
+    parent = os.path.dirname(file_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+
     with open(file_path, "a", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=row.keys())
         

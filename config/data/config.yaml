@@ -57,4 +57,17 @@ tcga_2:
     [0,2,2,0,0],
   ]
 
+tcga_2_244:
+# treatment_bias in [0,inf)
+# dose_bias in [1,inf)
+  keys: [x_resampling, treatment_bias, dose_bias, rm_confounding_t, rm_confounding_d]
+  tuples: [
+    [0,2,4,0,1],
+    [0,2,4,0,0],
+    [0,4,2,0,1],
+    [0,4,2,0,0],
+    [0,4,4,0,1],
+    [0,4,4,0,0],
+  ]
+
 

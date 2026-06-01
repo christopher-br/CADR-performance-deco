@@ -45,10 +45,15 @@ from sklearn.cluster import KMeans
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import os
+import stat
+import time
+
+# Required for TensorFlow v1-style tf.layers API used in SCIGAN.
+os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
 import tensorflow._api.v2.compat.v1 as tf
 tf.disable_v2_behavior()
 import shutil
-import os
 
 class MLP(ContinuousCATENN):
     """
@@ -230,7 +235,7 @@ class MultiHeadMLP(ContinuousCATENN):
         hidden = torch.cat((x, d), dim=1)
 
         # Dump x
-        x = torch.zeros((d.shape))
+        x = torch.zeros_like(d)
 
         # Feed through head layers
         for i in range(self.num_treatments):
@@ -302,13 +307,14 @@ class DRNet(ContinuousCATENN):
         bounds = torch.linspace(
             0 - torch.finfo().eps, 1 + torch.finfo().eps, (self.num_bins + 1)
         )
+        self.register_buffer("bin_bounds", bounds)
 
         def binning_fct(d: torch.FloatTensor) -> torch.FloatTensor:
             """
             Function that bins observations based on their factual dose.
             """
-            # Define bounds
-            bins = torch.bucketize(d, bounds) - 1
+            # Use bounds on the same device as the input
+            bins = torch.bucketize(d, self.bin_bounds) - 1
             return bins
 
         self.binning_fct = binning_fct
@@ -358,7 +364,7 @@ class DRNet(ContinuousCATENN):
         hidden = torch.cat((x, d), dim=1)
 
         # Dump x
-        x = torch.zeros((d.shape))
+        x = torch.zeros_like(d)
 
         # Get bins
         bins = self.binning_fct(d)
@@ -421,13 +427,14 @@ class MultiHeadDRNet(ContinuousCATENN):
         bounds = torch.linspace(
             0 - torch.finfo().eps, 1 + torch.finfo().eps, (self.num_bins + 1)
         )
+        self.register_buffer("bin_bounds", bounds)
 
         def binning_fct(d: torch.FloatTensor) -> torch.FloatTensor:
             """
             Function that bins observations based on their factual dose.
             """
-            # Define bounds
-            bins = torch.bucketize(d, bounds) - 1
+            # Use bounds on the same device as the input
+            bins = torch.bucketize(d, self.bin_bounds) - 1
             return bins
 
         self.binning_fct = binning_fct
@@ -479,7 +486,7 @@ class MultiHeadDRNet(ContinuousCATENN):
         # Add d
         hidden = torch.cat((hidden, d), dim=1)
         
-        x = torch.zeros((d.shape))
+        x = torch.zeros_like(d)
         
         # Get bins
         bins = self.binning_fct(d)
@@ -549,6 +556,7 @@ class VCNet:
         self.beta = beta
         self.binary_outcome = binary_outcome
         self.verbose = verbose
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def fit(self, x, y, d, t):
         # Get num epochs
@@ -574,10 +582,12 @@ class VCNet:
             cfg_density, self.num_grid, cfg, self.degree, self.knots, self.binary_outcome
         )
         self.model._initialize_weights()
+        self.model.to(self.device)
 
         if self.targeted_regularization:
             self.TargetReg = TR(self.tr_degree, self.tr_knots)
             self.TargetReg._initialize_weights()
+            self.TargetReg.to(self.device)
 
         optimizer = torch.optim.SGD(
             self.model.parameters(),
@@ -603,6 +613,8 @@ class VCNet:
         ):
             for idx, (inputs, y) in enumerate(train_loader):
                 idx = idx
+                inputs = inputs.to(self.device)
+                y = y.to(self.device)
                 d = inputs[:, 0]
                 x = inputs[:, 1:]
 
@@ -643,15 +655,18 @@ class VCNet:
         # Define pred loader
         pred_loader = get_iter(pred_matrix, pred_matrix.shape[0], shuffle=False)
 
-        for idx, (inputs, y) in enumerate(pred_loader):
-            # Get inputs
-            d = inputs[:, 0]
-            x = inputs[:, 1:]
+        self.model.eval()
+        with torch.no_grad():
+            for idx, (inputs, y) in enumerate(pred_loader):
+                # Get inputs
+                inputs = inputs.to(self.device)
+                d = inputs[:, 0]
+                x = inputs[:, 1:]
 
-            # Get estimates
-            y_hat = self.model.forward(x, d)[1].data.squeeze().numpy()
+                # Get estimates
+                y_hat = self.model.forward(x, d)[1].detach().squeeze().cpu().numpy()
 
-        return y_hat
+            return np.atleast_1d(y_hat)
 
 class SCIGAN(ContinuousCATE):
     """
@@ -692,7 +707,7 @@ class SCIGAN(ContinuousCATE):
     ):
         self.num_features = input_size
         self.num_treatments = num_treatments
-        self.export_dir = export_dir
+        self.export_dir = os.path.abspath(os.path.normpath(export_dir))
         self.h_dim = hidden_size
         self.h_inv_eqv_dim = (hidden_size if hidden_size_inv_eqv is None else hidden_size_inv_eqv) # Take hidden_size if not specified
         self.batch_size = batch_size
@@ -700,9 +715,11 @@ class SCIGAN(ContinuousCATE):
         self.num_steps_inf = num_steps_inf
         self.alpha = alpha
         self.num_dosage_samples = num_dosage_samples
+        self.tf_device = "gpu" if len(tf.config.list_physical_devices('GPU')) > 0 else "cpu"
 
         self.size_z = self.num_treatments * self.num_dosage_samples
         self.num_outcomes = self.num_treatments * self.num_dosage_samples
+        self.sess = None
 
         tf.reset_default_graph()
         tf.random.set_random_seed(10)
@@ -725,6 +742,24 @@ class SCIGAN(ContinuousCATE):
         self.Y = tf.placeholder(tf.float32, shape=[None, 1], name='input_y')
         # Random Noise (G)
         self.Z_G = tf.placeholder(tf.float32, shape=[None, self.size_z], name='input_noise')
+
+    @staticmethod
+    def _remove_readonly_and_retry(func, path, _exc_info):
+        """Windows helper for shutil.rmtree to remove read-only files/folders."""
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+
+    @classmethod
+    def _safe_rmtree(cls, path: str, retries: int = 5, delay: float = 0.3) -> None:
+        """Removes a directory robustly on Windows where OneDrive/AV locks can happen."""
+        for attempt in range(retries):
+            try:
+                shutil.rmtree(path, onerror=cls._remove_readonly_and_retry)
+                return
+            except PermissionError:
+                if attempt == retries - 1:
+                    raise
+                time.sleep(delay * (attempt + 1))
 
     def generator(self, x, y, t, d, z, treatment_dosage_samples):
         with tf.variable_scope('generator', reuse=tf.AUTO_REUSE):
@@ -865,9 +900,18 @@ class SCIGAN(ContinuousCATE):
         # Transform y to be between 0 and 1
         Train_Y = (Train_Y - self.min_y) / (self.max_y - self.min_y)
         
+        # Close any existing session first to release Windows file locks.
+        if self.sess is not None:
+            try:
+                self.sess.close()
+            except Exception:
+                pass
+            self.sess = None
+
         # Remove existing model
         if os.path.exists(self.export_dir):
-            shutil.rmtree(self.export_dir)
+            self._safe_rmtree(self.export_dir)
+        os.makedirs(self.export_dir, exist_ok=True)
         # 1. Counterfactual generator
         G_logits, G_treatment_dosage_outcomes = self.generator(x=self.X, y=self.Y, t=self.T, d=self.D,
                                                                z=self.Z_G,
@@ -939,8 +983,7 @@ class SCIGAN(ContinuousCATE):
         I_solver = tf.train.AdamOptimizer(learning_rate=0.001).minimize(I_loss, var_list=theta_I)
 
         # Setup tensorflow
-        tf_device = 'gpu'
-        if tf_device == "cpu":
+        if self.tf_device == "cpu":
             tf_config = tf.ConfigProto(log_device_placement=False, device_count={'GPU': 0})
         else:
             tf_config = tf.ConfigProto(log_device_placement=False, device_count={'GPU': 1})
@@ -1076,6 +1119,10 @@ class SCIGAN(ContinuousCATE):
                                              inputs={'input_features': self.X,
                                                      'input_treatment_dosage_samples': self.Treatment_Dosage_Samples},
                                              outputs={'inference_outcome': I_logits})
+
+        # Close training session once artifacts are exported.
+        self.sess.close()
+        self.sess = None
 
     def predict(self, x, d, t):
         with tf.Session(graph=tf.Graph()) as sess:

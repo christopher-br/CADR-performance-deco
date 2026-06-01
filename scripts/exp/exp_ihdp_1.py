@@ -1,14 +1,16 @@
 ## KEY SETTINGS
 #####################################
 
-DIR = "..."
+from pathlib import Path
+
+DIR = Path(__file__).resolve().parents[2]
 DATA_NAME = "ihdp_1"
 
 # Chg os and sys path
 import os
 import sys
 os.chdir(DIR)
-sys.path.append(DIR)
+sys.path.append(str(DIR))
 
 # Num of experiments per data configuration
 NUM_ITERATIONS = 10
@@ -21,8 +23,12 @@ RANDOM_SEARCH_N = 5
 #####################################
 
 # Standard library
+import os
 import warnings
 import silence_tensorflow.auto # To silence tensorflow in compat mode
+
+# Always disable tqdm progress bars in experiment entry scripts.
+os.environ["TQDM_DISABLE"] = "1"
 
 # Third party
 from tqdm import tqdm
@@ -33,11 +39,13 @@ from xgboost import XGBRegressor
 
 # Proprietary
 from src.data.ihdp_1 import load_data
-from src.methods.other import SLearner
+from src.methods.other import SLearner, KernelRidge
 from src.methods.neural import DRNet, MLP, VCNet, SCIGAN
 from src.methods.utils.regressors import LinearRegression, GeneralizedAdditiveModel
 from src.utils.metrics import (
     mean_integrated_prediction_error,
+    mean_outcome_defect,
+    dose_policy_error,
     brier_score,
 )
 from src.utils.setup import (
@@ -84,8 +92,15 @@ check_create_csv(DATA_NAME+"_tracker.csv", DATA_PARAS["keys"])
 
 def update_dict(dict, data, model, name):
     mise = mean_integrated_prediction_error(data.x_test, data.t_test, data.ground_truth, model)
+    mod = mean_outcome_defect(data.x_test, data.t_test, data.ground_truth, model)
+    dpe = dose_policy_error(data.x_test, data.t_test, data.ground_truth, model)
     bs = brier_score(data.x_test, data.y_test, data.d_test, data.t_test ,model)
-    dict.update({f"MISE {name}": mise, f"Brier score {name}": bs})
+    dict.update({
+        f"MISE {name}": mise,
+        f"Mean outcome defect {name}": mod,
+        f"Dose policy error {name}": dpe,
+        f"Brier score {name}": bs,
+    })
 
 
 ## ITERATE OVER DATA COMBINATIONS
@@ -224,5 +239,18 @@ for comb in tqdm(DATA_PARAS["tuples"], desc="Iterate over data combinations", le
     
     update_dict(results, data, model, name)
     
+    # Kernel Ridge
+    name = "kernelridge"
+    parameters = HYPERPARAS[name]
+    model, best_params = train_val_tuner(
+        data = data,
+        model = KernelRidge,
+        parameters = parameters,
+        name = name,
+        num_combinations = RANDOM_SEARCH_N,
+    )
+
+    update_dict(results, data, model, name)
+
     # FINALIZE ITERATION
-    add_dict("res:exp_"+DATA_NAME+".csv", results)
+    add_dict("results/exp_"+DATA_NAME+".csv", results)

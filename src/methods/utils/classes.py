@@ -1,6 +1,6 @@
 # LOAD MODULES
 # Standard library
-from typing import Tuple, Union, List
+from typing import Tuple, Union, List, Optional
 
 # Third party
 import numpy as np
@@ -253,7 +253,7 @@ class ContinuousCATENN(pl.LightningModule):
         hidden_size: Union[int, float] = 32,
         verbose: bool = False,
         activation: nn.Module = nn.ELU(),
-        accelerator: str = "cpu",
+        accelerator: Optional[str] = None,
     ) -> None:
         """
         Initializes the ContinuousCATENN object with the provided parameters.
@@ -272,7 +272,8 @@ class ContinuousCATENN(pl.LightningModule):
             hidden_size (int or float, optional): The size of the hidden layers. Defaults to 32.
             verbose (bool, optional): Whether to print progress messages. Defaults to False.
             activation (nn.Module, optional): The activation function to use. Defaults to nn.ELU().
-            accelerator (str, optional): The device to use for computations. Defaults to "cpu".
+            accelerator (Optional[str], optional): The device to use for computations.
+                If None, selects "gpu" when CUDA is available and "cpu" otherwise.
 
         Returns:
             None
@@ -297,6 +298,11 @@ class ContinuousCATENN(pl.LightningModule):
         self.verbose = verbose
         self.activation = activation
 
+        # Auto-select runtime accelerator unless explicitly provided.
+        if accelerator is None:
+            accelerator = "gpu" if torch.cuda.is_available() else "cpu"
+        self.accelerator = accelerator
+
         # Initialize trainer
         self.trainer = Trainer(
             max_steps=self.num_steps,
@@ -307,7 +313,7 @@ class ContinuousCATENN(pl.LightningModule):
             enable_checkpointing=False,
             enable_model_summary=self.verbose,
             logger=False,
-            accelerator=accelerator,
+            accelerator=self.accelerator,
             devices=1,
         )
 
@@ -432,11 +438,23 @@ class ContinuousCATENN(pl.LightningModule):
             np.ndarray: The predicted outcomes. A 1D numpy array where each element is the predicted 
                         outcome for the corresponding observation.
         """
-        x = torch.tensor(x, dtype=torch.float32)
-        d = torch.tensor(d, dtype=torch.float32).reshape(-1, 1)
-        t = torch.tensor(t, dtype=torch.float32).reshape(-1, 1)
+        # Run inference on the same device as model parameters.
+        param = next(self.parameters(), None)
+        if param is None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            device = param.device
 
-        y_hat = self.forward(x, d, t).reshape(-1).detach().numpy()
+        x = torch.tensor(x, dtype=torch.float32, device=device)
+        d = torch.tensor(d, dtype=torch.float32, device=device).reshape(-1, 1)
+        t = torch.tensor(t, dtype=torch.float32, device=device).reshape(-1, 1)
+
+        was_training = self.training
+        self.eval()
+        with torch.no_grad():
+            y_hat = self.forward(x, d, t).reshape(-1).detach().cpu().numpy()
+        if was_training:
+            self.train()
 
         return y_hat
 

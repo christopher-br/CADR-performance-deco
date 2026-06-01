@@ -1,17 +1,17 @@
 # LOAD MODULES
 # Standard library
+from pathlib import Path
 import os
 import sys
 
 # Third party
-import numpy as np
 import matplotlib.pyplot as plt
 import scienceplots
 plt.style.use('science')
 
-DIR = "..."
+DIR = Path(__file__).resolve().parents[2]
 os.chdir(DIR)
-sys.path.append(DIR)
+sys.path.append(str(DIR))
 
 # Proprietary
 from src.data.ihdp_1 import load_data as ihdp_1
@@ -21,7 +21,7 @@ from src.data.synth_1 import load_data as synth_1
 from src.data.tcga_2 import load_data as tcga_2
 from src.data.tcga_3 import load_data as tcga_3
 
-from src.utils.viz import dose_dr_plot
+from src.utils.viz import dose_plot
 
 # Settings
 num_bins = 20
@@ -37,7 +37,7 @@ data = ihdp_1(
     bias=1.
 )
 
-dose_dr_plot(data.x, data.d, data.t, data.ground_truth ,w=3,h=3, file_name="dr_"+name+".pdf", num_bins=num_bins)
+dose_plot(data.d,w=3,h=2, color="steelblue", labels=True, file_name="dd_"+name+".pdf", num_bins=num_bins)
 
 ##########################
 
@@ -48,7 +48,7 @@ data = ihdp_3(
     bias=4.
 )
 
-dose_dr_plot(data.x, data.d, data.t, data.ground_truth ,w=3,h=3, file_name="dr_"+name+".pdf", num_bins=num_bins)
+dose_plot(data.d,w=3,h=2, color="steelblue", labels=True, file_name="dd_"+name+".pdf", num_bins=num_bins)
 
 ##########################
 
@@ -59,7 +59,7 @@ data = news_3(
     bias=4.
 )
 
-dose_dr_plot(data.x, data.d, data.t, data.ground_truth ,w=3,h=3, file_name="dr_"+name+".pdf", num_bins=num_bins, samples=750)
+dose_plot(data.d,w=3,h=2, color="steelblue", labels=True, file_name="dd_"+name+".pdf", num_bins=num_bins)
 
 ##########################
 
@@ -70,7 +70,7 @@ data = synth_1(
     bias=1.
 )
 
-dose_dr_plot(data.x, data.d, data.t, data.ground_truth ,w=3,h=3, file_name="dr_"+name+".pdf", num_bins=num_bins)
+dose_plot(data.d,w=3,h=2, color="steelblue", labels=True, file_name="dd_"+name+".pdf", num_bins=num_bins)
 
 ##########################
 
@@ -83,7 +83,7 @@ data = tcga_2(
     dose_bias=2,
 )
 
-dose_dr_plot(data.x, data.d, data.t, data.ground_truth ,w=3,h=3, file_name="dr_"+name+".pdf", num_bins=num_bins, samples=750)
+dose_plot(data.d,w=3,h=2, color="steelblue", labels=True, file_name="dd_"+name+".pdf", num_bins=num_bins)
 
 ##########################
 
@@ -95,4 +95,4 @@ data = tcga_3(
     bias_intra=5,
 )
 
-dose_dr_plot(data.x, data.d, data.t, data.ground_truth ,w=3,h=3, file_name="dr_"+name+".pdf", num_bins=num_bins, samples=750)
+dose_plot(data.d,w=3,h=2, color="steelblue", labels=True, file_name="dd_"+name+".pdf", num_bins=num_bins)
